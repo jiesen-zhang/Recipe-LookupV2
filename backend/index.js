@@ -188,6 +188,14 @@ app.post("/api/post/points/:recipeId", (require, response) => {
     console.log(result)
     console.log(err)
   })
+  db.query(test2, (err, result) => {
+    console.log(result)
+    console.log(err)
+  })
+  db.query(test3, recipeId, (err, result) => {
+    console.log(result)
+    console.log(err)
+  })
 })
 
 app.post("/api/post/update", (require, response) => {
