@@ -11,6 +11,7 @@ function App() {
   const [fat, setFat] = useState('');
   const [diet, setDiet] = useState('');
   const [newPassword, setNewPassword] = useState("");
+  // const [recipeId, setRecipeId] = useState("");
 
   const [search, setSearch] = useState('');
   const [recipeList, setRecipeList] = useState([]);
@@ -30,6 +31,10 @@ function App() {
     });
   };
 
+  const updatePoints = (recipeId) => {
+    Axios.post(`http://localhost:3000/api/post/points/${recipeId}`);
+  }
+;
   const searchRecipe = () => {
     Axios.post('http://localhost:3000/api/post/ingredient', {
       search: search
@@ -163,6 +168,9 @@ function App() {
               <h2> Carbs: {val.carbs} </h2>
               <h2> Fat: {val.fat }</h2>
               <h2> Protein: {val.protein }</h2>
+              <button onClick={() => {
+                updatePoints(val.recipeId)
+              }}> Update </button>
             </div>
           );
         })}

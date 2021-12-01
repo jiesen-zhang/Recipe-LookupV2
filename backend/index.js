@@ -35,7 +35,7 @@ app.post("/api/insert", (require, response) => {
   let insertRestrictions;
 
 
-  const insertUser = "INSERT INTO User (firstName, lastName, password) VALUES (?,?,?)";
+  const insertUser = "INSERT INTO User (firstName, lastName, password, points) VALUES (?,?,?, 100)";
   const insertDiet = "INSERT INTO `Preferences` (`userId`,`fatPref`, `carbsPref`, `proteinPref`) VALUES (?,?,?,?)";
   if(diet.toLowerCase() == "vegetarian"){
     insertRestrictions = "INSERT INTO `DietRestrictions` (`userId`,`isVegetarian`, `isNotVegetarian`, `isVegan`) VALUES (?,1,0,0)";
@@ -76,11 +76,11 @@ app.post("/api/post/advQuery1", (require, response) => {
 
   // Query #1
   if(diet.toLowerCase() == "vegetarian"){
-    advQuery1 = "(SELECT r.recipeId, r.recipeName, r.calories, r.carbs, r.fat, r.protein, SUM(CASE WHEN info.ingIsVegan = 1 THEN 1 else 0 end) as veganCount, SUM(CASE WHEN info.ingIsVegetarian = 1 THEN 1 else 0 end) as vegCount, SUM(CASE WHEN info.ingIsMeat = 1 THEN 1 else 0 end) as nonvegCount FROM Recipes r INNER JOIN Ingredients i ON r.recipeId = i.recipeId INNER JOIN IngInfo info ON i.ingredientName = info.ingredientName GROUP BY r.recipeId HAVING nonvegCount = 0)";
+    advQuery1 = "(SELECT DISTINCT r.recipeId, r.recipeName, r.calories, r.carbs, r.fat, r.protein, SUM(CASE WHEN info.ingIsVegan = 1 THEN 1 else 0 end) as veganCount, SUM(CASE WHEN info.ingIsVegetarian = 1 THEN 1 else 0 end) as vegCount, SUM(CASE WHEN info.ingIsMeat = 1 THEN 1 else 0 end) as nonvegCount FROM Recipes r INNER JOIN Ingredients i ON r.recipeId = i.recipeId INNER JOIN IngInfo info ON i.ingredientName = info.ingredientName GROUP BY r.recipeId HAVING nonvegCount = 0)";
   } else if(diet.toLowerCase() == "vegan"){
-    advQuery1 = "(SELECT r.recipeId, r.recipeName, r.calories, r.carbs, r.fat, r.protein, SUM(CASE WHEN info.ingIsVegan = 1 THEN 1 else 0 end) as veganCount, SUM(CASE WHEN info.ingIsVegetarian = 1 THEN 1 else 0 end) as vegCount, SUM(CASE WHEN info.ingIsMeat = 1 THEN 1 else 0 end) as nonvegCount FROM Recipes r INNER JOIN Ingredients i ON r.recipeId = i.recipeId INNER JOIN IngInfo info ON i.ingredientName = info.ingredientName GROUP BY r.recipeId HAVING nonvegCount = 0 AND veganCount != 0)";
+    advQuery1 = "(SELECT DISTINCT r.recipeId, r.recipeName, r.calories, r.carbs, r.fat, r.protein, SUM(CASE WHEN info.ingIsVegan = 1 THEN 1 else 0 end) as veganCount, SUM(CASE WHEN info.ingIsVegetarian = 1 THEN 1 else 0 end) as vegCount, SUM(CASE WHEN info.ingIsMeat = 1 THEN 1 else 0 end) as nonvegCount FROM Recipes r INNER JOIN Ingredients i ON r.recipeId = i.recipeId INNER JOIN IngInfo info ON i.ingredientName = info.ingredientName GROUP BY r.recipeId HAVING nonvegCount = 0 AND veganCount != 0)";
   } else {
-    advQuery1 = "(SELECT r.recipeId, r.recipeName, r.calories, r.carbs, r.fat, r.protein, SUM(CASE WHEN info.ingIsVegan = 1 THEN 1 else 0 end) as veganCount, SUM(CASE WHEN info.ingIsVegetarian = 1 THEN 1 else 0 end) as vegCount, SUM(CASE WHEN info.ingIsMeat = 1 THEN 1 else 0 end) as nonvegCount FROM Recipes r INNER JOIN Ingredients i ON r.recipeId = i.recipeId INNER JOIN IngInfo info ON i.ingredientName = info.ingredientName GROUP BY r.recipeId)";
+    advQuery1 = "(SELECT DISTINCT r.recipeId, r.recipeName, r.calories, r.carbs, r.fat, r.protein, SUM(CASE WHEN info.ingIsVegan = 1 THEN 1 else 0 end) as veganCount, SUM(CASE WHEN info.ingIsVegetarian = 1 THEN 1 else 0 end) as vegCount, SUM(CASE WHEN info.ingIsMeat = 1 THEN 1 else 0 end) as nonvegCount FROM Recipes r INNER JOIN Ingredients i ON r.recipeId = i.recipeId INNER JOIN IngInfo info ON i.ingredientName = info.ingredientName GROUP BY r.recipeId)";
   }
 
   db.query(advQuery1, (err, result) => {
@@ -90,7 +90,7 @@ app.post("/api/post/advQuery1", (require, response) => {
 
 app.post("/api/post/advQuery2", (require, response) => {
   // Query #2
-  const advQuery2 = "SELECT r.recipeId, r.recipeName, r.calories, r.carbs, r.fat, r.protein FROM Recipes r WHERE (r.carbs <= CASE WHEN (Select p.carbsPref from Preferences p natural join User u where u.userId IN (select max(userId) from User)) LIKE 'Low Carbs' THEN 200 ELSE 10000 end) AND (r.fat <= CASE WHEN (Select p.fatPref from Preferences p natural join User u where u.userId IN (select max(userId) from User)) LIKE 'Low Fat' THEN 125 ELSE 10000 end) AND (r.protein >= CASE WHEN (Select p.proteinPref from Preferences p natural join User u where u.userId IN (select max(userId) from User)) LIKE 'High Protein' THEN 180 ELSE 0 end)";
+  const advQuery2 = "SELECT DISTINCT r.recipeId, r.recipeName, r.calories, r.carbs, r.fat, r.protein FROM Recipes r WHERE (r.carbs <= CASE WHEN (Select p.carbsPref from Preferences p natural join User u where u.userId IN (select max(userId) from User)) LIKE 'Low Carbs' THEN 200 ELSE 10000 end) AND (r.fat <= CASE WHEN (Select p.fatPref from Preferences p natural join User u where u.userId IN (select max(userId) from User)) LIKE 'Low Fat' THEN 125 ELSE 10000 end) AND (r.protein >= CASE WHEN (Select p.proteinPref from Preferences p natural join User u where u.userId IN (select max(userId) from User)) LIKE 'High Protein' THEN 180 ELSE 0 end)";
   db.query(advQuery2, (err, result) => {
     response.send(result)
   });
@@ -100,7 +100,7 @@ app.post("/api/post/advQuery2", (require, response) => {
 app.post("/api/post/ingredient", (require, response) => {
   const search = require.body.search;
   console.log("Ingredient: " + search);
-  const searchQuery = "SELECT r.recipeId, r.recipeName, r.calories, r.carbs, r.fat, r.protein FROM Recipes r NATURAL JOIN Ingredients I WHERE I.ingredientName = ?";
+  const searchQuery = "SELECT DISTINCT r.recipeId, r.recipeName, r.calories, r.carbs, r.fat, r.protein FROM Recipes r NATURAL JOIN Ingredients I WHERE I.ingredientName = ?";
   const basicQuery = "SELECT * FROM Ingredients WHERE ingredientName = ?"
 
    db.query(searchQuery, [search], (err, result) => {
@@ -128,6 +128,67 @@ app.delete("/api/delete/:userId", (require, response) => {
     console.log(err);
   })
 });
+
+app.post("/api/post/points/:recipeId", (require, response) => {
+  const recipeId = require.params.recipeId;
+  console.log("This is the recipeId " + recipeId);
+
+  const sqlTrans =
+    "SET TRANSACTION ISOLATION LEVEL READ COMMITTED; \
+    Insert into Favorites(recipeId, userId) \
+    Values(14, (select max(userId) from User)); \
+    UPDATE User \
+    SET points = points - 1 \
+    WHERE (userId = (select idUser from (select userId as idUser from User where userId = (Select max(userId) from User) and \
+     (0 < (SELECT jaks from (SELECT points as jaks \
+      FROM User where userId IN (SELECT userId FROM User where userId = (Select max(userId) from User))) as xyz))) as abc)); \
+    UPDATE User \
+    SET points = points + 1 \
+    WHERE userId = (SELECT r.uid FROM Recipes r WHERE r.recipeId = 14); \
+    COMMIT;";
+  
+  const test1 =  
+  "Insert into Favorites(recipeId, userId) \
+  Values(?, (select max(userId) from User));"
+
+  const test2 = 
+  "UPDATE User \
+  SET points = points - 1 \
+  WHERE (userId = (select idUser from (select userId as idUser from User where userId = (Select max(userId) from User) and \
+   (0 < (SELECT jaks from (SELECT points as jaks \
+    FROM User where userId IN (SELECT userId FROM User where userId = (Select max(userId) from User))) as xyz))) as abc));"
+
+  const test3 = 
+  "UPDATE User \
+  SET points = points + 1 \
+  WHERE userId = (SELECT r.uid FROM Recipes r WHERE r.recipeId = ?);"
+
+
+  // const sqlTrig = 
+  //   "DELIMITER $$ \
+  //   CREATE TRIGGER insertFavorite \
+  //   BEFORE INSERT on Favorites \
+  //   FOR EACH ROW \
+  //   BEGIN \
+  //   IF (new.userId NOT IN (Select userId From Favorites)) and (new.recipeId not in (select recipeId from Favorites)) \
+  //   THEN INSERT INTO Analytics(recipeId, faveBy) \
+  //   VALUES (new.recipeId, new.userId); \
+  //   END IF; \
+  //   END $$"; 
+    
+  // db.query(sqlTrig, (err, result) => {
+  //   console.log(err);
+  // })
+
+  // db.query(sqlTrans, [recipeId, recipeId], (err, result) => {
+  //   console.log(err)
+  // })
+
+  db.query(test1, recipeId, (err, result) => {
+    console.log(result)
+    console.log(err)
+  })
+})
 
 app.post("/api/post/update", (require, response) => {
   const userId = require.body.userId;
